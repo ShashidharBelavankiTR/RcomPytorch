@@ -136,11 +136,11 @@ SYSTEM_PROMPT = (
 # CHUNKING SETTINGS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Number of words per chunk — R9700 32GB can handle large chunks
-CHUNK_SIZE = 1024
+# Number of words per chunk — 512 balances context quality and training speed
+CHUNK_SIZE = 512
 
 # Overlap between chunks in words — ensures context continuity
-CHUNK_OVERLAP = 100
+CHUNK_OVERLAP = 50
 
 # ── Supported file types (all scanned recursively from /train) ────────────────
 # .txt  — plain text
@@ -197,20 +197,22 @@ LORA_DROPOUT = 0.05
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # Number of full passes through the training data
-EPOCHS = 3
+# For large datasets (>5MB), 1–2 epochs is enough; 3+ risks overfitting
+EPOCHS = 1
 
-# Samples per GPU step — R9700 32GB can handle 2 for most 7B–14B models
-BATCH_SIZE = 2
+# Samples per GPU step — R9700 32GB handles 4 easily for 7B models
+BATCH_SIZE = 4
 
 # Accumulate gradients over this many steps before updating weights
-# Effective batch size = BATCH_SIZE × GRAD_ACCUM_STEPS = 2 × 8 = 16
-GRAD_ACCUM_STEPS = 8
+# Effective batch size = BATCH_SIZE × GRAD_ACCUM_STEPS = 4 × 4 = 16
+GRAD_ACCUM_STEPS = 4
 
 # Learning rate — 2e-4 is a good default for LoRA fine-tuning
 LEARNING_RATE = 2e-4
 
-# Maximum sequence length in tokens — R9700 32GB supports longer sequences
-MAX_SEQ_LENGTH = 2048
+# Maximum sequence length in tokens — 1024 is sufficient for most chunks
+# Shorter = much faster training. Increase to 2048 only if your chunks are very long.
+MAX_SEQ_LENGTH = 1024
 
 # Fraction of training steps for learning rate warmup
 WARMUP_RATIO = 0.05
