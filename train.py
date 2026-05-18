@@ -170,129 +170,144 @@ def main():
 
     print()
 
-    # ── Step 5: Apply LoRA ─────────────────────────────────────────────────
-    print("━" * 65)
-    print("  Step 4: Applying LoRA Adapter")
-    print("━" * 65)
+    try:
+        # ── Step 4: Apply LoRA ─────────────────────────────────────────────
+        print("━" * 65)
+        print("  Step 4: Applying LoRA Adapter")
+        print("━" * 65)
 
-    target_modules = get_target_modules(config.MODEL_NAME)
-    print(f"  Target modules: {target_modules}")
+        target_modules = get_target_modules(config.MODEL_NAME)
+        print(f"  Target modules: {target_modules}")
 
-    lora_config = LoraConfig(
-        r=config.LORA_RANK,
-        lora_alpha=config.LORA_ALPHA,
-        lora_dropout=config.LORA_DROPOUT,
-        target_modules=target_modules,
-        bias="none",
-        task_type="CAUSAL_LM",
-    )
+        lora_config = LoraConfig(
+            r=config.LORA_RANK,
+            lora_alpha=config.LORA_ALPHA,
+            lora_dropout=config.LORA_DROPOUT,
+            target_modules=target_modules,
+            bias="none",
+            task_type="CAUSAL_LM",
+        )
 
-    model = get_peft_model(model, lora_config)
+        model = get_peft_model(model, lora_config)
 
-    # Print parameter counts
-    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    total_params = sum(p.numel() for p in model.parameters())
-    pct = 100 * trainable_params / total_params if total_params > 0 else 0
+        # Print parameter counts
+        trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+        total_params = sum(p.numel() for p in model.parameters())
+        pct = 100 * trainable_params / total_params if total_params > 0 else 0
 
-    print(f"  Trainable parameters: {trainable_params:,} / {total_params:,} ({pct:.2f}%)")
-    print()
+        print(f"  Trainable parameters: {trainable_params:,} / {total_params:,} ({pct:.2f}%)")
+        print()
 
-    # ── Step 6: Load and tokenize dataset ──────────────────────────────────
-    print("━" * 65)
-    print("  Step 5: Loading Dataset")
-    print("━" * 65)
+        # ── Step 5: Load dataset ───────────────────────────────────────────
+        print("━" * 65)
+        print("  Step 5: Loading Dataset")
+        print("━" * 65)
 
-    dataset = load_dataset("json", data_files=data_path, split="train")
-    print(f"  Dataset loaded: {len(dataset)} examples")
-    print()
+        dataset = load_dataset("json", data_files=data_path, split="train")
+        print(f"  Dataset loaded: {len(dataset)} examples")
+        print()
 
-    # ── Step 7: Training ───────────────────────────────────────────────────
-    print("━" * 65)
-    print("  Step 6: Training")
-    print("━" * 65)
+        # ── Step 6: Training ───────────────────────────────────────────────
+        print("━" * 65)
+        print("  Step 6: Training")
+        print("━" * 65)
 
-    # Pre-training memory cleanup
-    gc.collect()
-    torch.cuda.empty_cache()
+        # Pre-training memory cleanup
+        gc.collect()
+        torch.cuda.empty_cache()
 
-    # Disable cache for training (incompatible with gradient checkpointing)
-    model.config.use_cache = False
+        # Disable cache for training (incompatible with gradient checkpointing)
+        model.config.use_cache = False
 
-    training_args = TrainingArguments(
-        output_dir=config.OUTPUT_DIR,
-        num_train_epochs=config.EPOCHS,
-        per_device_train_batch_size=config.BATCH_SIZE,
-        gradient_accumulation_steps=config.GRAD_ACCUM_STEPS,
-        learning_rate=config.LEARNING_RATE,
-        max_grad_norm=0.3,
-        warmup_ratio=config.WARMUP_RATIO,
-        lr_scheduler_type="cosine",
-        logging_dir=config.LOGS_DIR,
-        logging_steps=config.LOGGING_STEPS,
-        save_steps=config.SAVE_STEPS,
-        save_total_limit=2,
-        fp16=True,
-        bf16=False,
-        optim="adamw_torch",
-        report_to="none",
-        gradient_checkpointing=config.USE_GRADIENT_CHECKPOINTING,
-        dataloader_pin_memory=False,
-        remove_unused_columns=False,
-        group_by_length=True,
-        seed=42,
-    )
+        training_args = TrainingArguments(
+            output_dir=config.OUTPUT_DIR,
+            num_train_epochs=config.EPOCHS,
+            per_device_train_batch_size=config.BATCH_SIZE,
+            gradient_accumulation_steps=config.GRAD_ACCUM_STEPS,
+            learning_rate=config.LEARNING_RATE,
+            max_grad_norm=0.3,
+            warmup_ratio=config.WARMUP_RATIO,
+            lr_scheduler_type="cosine",
+            logging_dir=config.LOGS_DIR,
+            logging_steps=config.LOGGING_STEPS,
+            save_steps=config.SAVE_STEPS,
+            save_total_limit=2,
+            fp16=True,
+            bf16=False,
+            optim="adamw_torch",
+            report_to="none",
+            gradient_checkpointing=config.USE_GRADIENT_CHECKPOINTING,
+            dataloader_pin_memory=False,
+            remove_unused_columns=False,
+            group_by_length=True,
+            seed=42,
+        )
 
-    trainer = SFTTrainer(
-        model=model,
-        args=training_args,
-        train_dataset=dataset,
-        processing_class=tokenizer,
-        max_seq_length=config.MAX_SEQ_LENGTH,
-    )
+        trainer = SFTTrainer(
+            model=model,
+            args=training_args,
+            train_dataset=dataset,
+            processing_class=tokenizer,
+            max_seq_length=config.MAX_SEQ_LENGTH,
+        )
 
-    print(f"\n  Starting training...")
-    print(f"  Epochs: {config.EPOCHS}")
-    print(f"  Total steps: {trainer.state.max_steps if hasattr(trainer.state, 'max_steps') else '(calculating...)'}")
-    print()
+        print(f"\n  Starting training...")
+        print(f"  Epochs: {config.EPOCHS}")
+        print(f"  Total steps: {trainer.state.max_steps if hasattr(trainer.state, 'max_steps') else '(calculating...)'}")
+        print()
 
-    start_time = time.time()
-    trainer.train()
-    elapsed = time.time() - start_time
+        start_time = time.time()
+        trainer.train()
+        elapsed = time.time() - start_time
 
-    # Format time
-    hours = int(elapsed // 3600)
-    minutes = int((elapsed % 3600) // 60)
-    seconds = int(elapsed % 60)
-    time_str = f"{hours}h {minutes}m {seconds}s" if hours > 0 else f"{minutes}m {seconds}s"
+        # Format time
+        hours = int(elapsed // 3600)
+        minutes = int((elapsed % 3600) // 60)
+        seconds = int(elapsed % 60)
+        time_str = f"{hours}h {minutes}m {seconds}s" if hours > 0 else f"{minutes}m {seconds}s"
 
-    # ── Step 8: Save ───────────────────────────────────────────────────────
-    print()
-    print("━" * 65)
-    print("  Step 7: Saving Adapter")
-    print("━" * 65)
+        # ── Step 7: Save ───────────────────────────────────────────────────
+        print()
+        print("━" * 65)
+        print("  Step 7: Saving Adapter")
+        print("━" * 65)
 
-    # Save LoRA adapter
-    model.save_pretrained(config.OUTPUT_DIR)
-    tokenizer.save_pretrained(config.OUTPUT_DIR)
+        # Save LoRA adapter
+        model.save_pretrained(config.OUTPUT_DIR)
+        tokenizer.save_pretrained(config.OUTPUT_DIR)
 
-    output_abs = os.path.abspath(config.OUTPUT_DIR)
-    print(f"  LoRA adapter saved to: {output_abs}")
+        output_abs = os.path.abspath(config.OUTPUT_DIR)
+        print(f"  LoRA adapter saved to: {output_abs}")
 
-    # ── Done ───────────────────────────────────────────────────────────────
-    print()
-    print("╔═══════════════════════════════════════════════════════════════════╗")
-    print("║                     TRAINING COMPLETE                            ║")
-    print("╠═══════════════════════════════════════════════════════════════════╣")
-    print(f"║  Training time:  {time_str:<48}║")
-    print(f"║  Output:         {output_abs:<48}║")
-    print("║                                                                   ║")
-    print("║  Next: python inference.py  (to test your model)                  ║")
-    print("╚═══════════════════════════════════════════════════════════════════╝")
-    print()
+        # ── Done ───────────────────────────────────────────────────────────
+        print()
+        print("╔═══════════════════════════════════════════════════════════════════╗")
+        print("║                     TRAINING COMPLETE                            ║")
+        print("╠═══════════════════════════════════════════════════════════════════╣")
+        print(f"║  Training time:  {time_str:<48}║")
+        print(f"║  Output:         {output_abs:<48}║")
+        print("║                                                                   ║")
+        print("║  Next: python inference.py  (to test your model)                  ║")
+        print("╚═══════════════════════════════════════════════════════════════════╝")
+        print()
 
-    # Cleanup
-    gc.collect()
-    torch.cuda.empty_cache()
+    except Exception as e:
+        print()
+        print("━" * 65)
+        print("  [ERROR] Training failed — unloading model to free VRAM")
+        print("━" * 65)
+        print(f"  Error: {e}")
+        print()
+        raise
+
+    finally:
+        # Always unload model and free GPU memory, whether training
+        # succeeded or failed
+        del model
+        del tokenizer
+        gc.collect()
+        torch.cuda.empty_cache()
+        print("  GPU memory released.")
 
 
 if __name__ == "__main__":
