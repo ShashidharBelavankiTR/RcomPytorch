@@ -115,6 +115,24 @@ OUTPUT_DIR = "./output"
 LOGS_DIR = "./logs"
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# SYSTEM PROMPT
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# This is the system prompt used during BOTH training and inference.
+# It tells the model what role to play and how to behave.
+# Change this to match your use case — the model learns to follow it during training.
+#
+# Examples:
+#   "You are a legal assistant specializing in contract law."
+#   "You are a Python expert who writes clean, efficient code."
+#   "You are a medical knowledge assistant. Always recommend consulting a doctor."
+#   "You are a customer support agent for Acme Corp. Be polite and helpful."
+SYSTEM_PROMPT = (
+    "You are a knowledgeable assistant. Use the following information "
+    "to answer questions accurately and helpfully."
+)
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # CHUNKING SETTINGS
 # ═══════════════════════════════════════════════════════════════════════════════
 

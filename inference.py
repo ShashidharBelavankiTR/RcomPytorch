@@ -103,7 +103,7 @@ def main():
             break
 
         # Format prompt using model's chat template
-        prompt = format_prompt(template, user_input)
+        prompt = format_prompt(template, user_input, system_text=config.SYSTEM_PROMPT)
 
         # Tokenize
         inputs = tokenizer(prompt, return_tensors="pt").to(model.device)

@@ -447,10 +447,6 @@ def run_chunking() -> str:
     print()
     print(f"  Formatting {len(final_chunks)} chunks with chat template...")
     template   = get_chat_template(config.MODEL_NAME)
-    system_msg = (
-        "You are a knowledgeable assistant. Use the following information "
-        "to answer questions accurately and helpfully."
-    )
     formatted_examples = []
     for chunk in final_chunks:
         formatted = format_training_example(
@@ -460,7 +456,7 @@ def run_chunking() -> str:
                 "and detailed response:\n\n" + chunk
             ),
             assistant_text="Based on the provided information:\n\n" + chunk,
-            system_text=system_msg,
+            system_text=config.SYSTEM_PROMPT,
         )
         formatted_examples.append({"text": formatted})
 
