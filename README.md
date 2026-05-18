@@ -31,6 +31,16 @@ The R9700's `gfx1201` architecture is **RDNA 4** — it is **not supported in RO
 
 ## 2. Quick Start
 
+### One-Line Do Everything
+
+```bash
+python install.py && python setup_check.py && python train.py
+```
+
+Installs deps → verifies GPU → trains. Stops if any step fails.
+
+---
+
 ### Step 1: Install Dependencies
 
 ```bash
@@ -51,21 +61,29 @@ Runs PASS/FAIL checks for Python, PyTorch, ROCm, GPU detection, env vars, VRAM, 
 
 ### Step 3: Add Training Data
 
-Drop your `.txt` and `.pdf` files into the `train/` folder.
+Drop your files into the `train/` folder. Supported formats:
+
+| Format | Extension |
+|--------|-----------|
+| Plain text | `.txt` |
+| PDF (text-based) | `.pdf` |
+| Microsoft Word | `.docx` |
+| Excel spreadsheet | `.xlsx`, `.xls` |
+| Markdown | `.md` |
 
 ### Step 4: Configure (Optional)
 
 Edit `config.py` to change the model, training parameters, or LoRA settings. The defaults work great for 7B models on 32GB VRAM.
 
-### Step 5: Add HuggingFace Token
+### Step 5: Chunk Data Only (Optional)
 
-Edit `.env` and add your token (required for gated models like Llama, Gemma, Mistral):
+To run **only** the data pipeline (extract → chunk → deduplicate → validate) without training:
 
+```bash
+python chunk.py
 ```
-HF_TOKEN=hf_your_token_here
-```
 
-Get a token at: https://huggingface.co/settings/tokens
+This scans `train/`, processes all supported file types, removes near-duplicate chunks, prints a quality report, and saves the output to `data/train.jsonl`. Useful for inspecting your data before committing to a full training run.
 
 ### Step 6: Train
 
@@ -73,7 +91,7 @@ Get a token at: https://huggingface.co/settings/tokens
 python train.py
 ```
 
-That's it. The script handles chunking, tokenization, model loading, LoRA, training, and saving.
+That's it. The script handles chunking, tokenization, model downloading, LoRA, training, and saving. All supported models (Qwen, Mistral, Phi-4, DeepSeek, Falcon, Yi, InternLM, OLMo, Mixtral) are Apache 2.0 / MIT licensed — **no HuggingFace token or API key needed**.
 
 ### Step 7: Test
 

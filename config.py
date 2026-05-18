@@ -124,6 +124,43 @@ CHUNK_SIZE = 1024
 # Overlap between chunks in words — ensures context continuity
 CHUNK_OVERLAP = 100
 
+# ── Supported file types (all scanned recursively from /train) ────────────────
+# .txt  — plain text
+# .pdf  — PDF documents (text-based; scanned PDFs need OCR)
+# .docx — Microsoft Word documents (text + tables)
+# .xlsx — Microsoft Excel spreadsheets (all sheets, all cells)
+# .xls  — Legacy Excel format
+# .md   — Markdown files (markdown syntax is stripped before chunking)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DEDUPLICATION SETTINGS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Remove near-duplicate chunks before saving to JSONL
+# Recommended: True — duplicate chunks waste training compute
+DEDUP_ENABLED = True
+
+# Jaccard similarity threshold (0.0–1.0) above which two chunks are considered
+# near-duplicates. The second chunk is discarded.
+#   0.95 = only near-identical chunks removed (strict)
+#   0.85 = chunks with 85%+ word trigram overlap removed (recommended)
+#   0.70 = more aggressive dedup (use if dataset has lots of repetition)
+DEDUP_THRESHOLD = 0.85
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VALIDATION SETTINGS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Validate chunk quality and print a distribution report after chunking
+VALIDATE_CHUNKS = True
+
+# Chunks with fewer words than this are flagged as too short (low information)
+MIN_CHUNK_WORDS = 50
+
+# Chunks with more words than this are flagged as too long
+# Defaults to CHUNK_SIZE * 1.5 at runtime if set to None
+MAX_CHUNK_WORDS = None
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # LoRA SETTINGS
 # ═══════════════════════════════════════════════════════════════════════════════
