@@ -1,0 +1,24 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# Requirements — MY AI TRAINER
+# AMD Radeon AI PRO R9700 32GB · gfx1201 · ROCm 7.x
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# !! IMPORTANT !!
+# PyTorch must be installed FIRST via: python install.py
+# Do NOT run 'pip install torch' manually — it will install the CUDA version.
+# The install.py script fetches the correct ROCm 7.x wheels for gfx1201.
+#
+# After PyTorch is installed, run: pip install -r requirements.txt
+# ═══════════════════════════════════════════════════════════════════════════════
+
+transformers>=4.45.0
+peft>=0.13.0
+trl>=0.11.0
+bitsandbytes>=0.44.0
+accelerate>=0.34.0
+datasets>=3.0.0
+pypdf>=4.0.0
+python-dotenv>=1.0.0
+numpy==1.26.4
+colorama>=0.4.6
+huggingface-hub>=0.25.0
