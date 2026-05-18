@@ -27,9 +27,8 @@ from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     TrainingArguments,
-    BitsAndBytesConfig,
 )
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from peft import LoraConfig, get_peft_model
 from trl import SFTTrainer
 from datasets import load_dataset
 
@@ -80,7 +79,6 @@ def print_config_summary():
     print(f"  │  Effective Batch:   {eff_batch:<40}│")
     print(f"  │  Learning Rate:     {config.LEARNING_RATE:<40}│")
     print(f"  │  Max Seq Length:    {config.MAX_SEQ_LENGTH:<40}│")
-    print(f"  │  4-bit Quant:       {str(config.USE_4BIT_QUANTIZATION):<40}│")
     print(f"  │  Grad Checkpoint:   {str(config.USE_GRADIENT_CHECKPOINTING):<40}│")
     print(f"  │  Output Dir:        {config.OUTPUT_DIR:<40}│")
     print("  └─────────────────────────────────────────────────────────────┘")
@@ -149,50 +147,21 @@ def main():
     print(f"  Pad token: {tokenizer.pad_token}")
     print()
 
-    # ── Step 3: Configure quantization ─────────────────────────────────────
+    # ── Step 3: Load model ─────────────────────────────────────────────────
     print("━" * 65)
     print("  Step 3: Loading Model")
     print("━" * 65)
-
-    quant_config = None
-    if config.USE_4BIT_QUANTIZATION:
-        try:
-            # Test that bitsandbytes actually works before using it
-            import bitsandbytes as bnb
-            print("  4-bit quantization: ENABLED (NF4 + double quantization)")
-            quant_config = BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_compute_dtype=torch.float16,
-                bnb_4bit_quant_type="nf4",
-                bnb_4bit_use_double_quant=True,
-            )
-        except (ImportError, RuntimeError, Exception) as e:
-            print(f"  [WARNING] bitsandbytes failed to load: {e}")
-            print(f"  Falling back to full precision (no 4-bit quantization).")
-            print(f"  This is fine for models ≤14B on your 32GB R9700.")
-            print(f"  To fix: install ROCm HIP SDK and rebuild bitsandbytes from source.")
-            print()
-            config.USE_4BIT_QUANTIZATION = False
-    else:
-        print("  4-bit quantization: DISABLED (full precision)")
-
-    # ── Step 4: Load model ─────────────────────────────────────────────────
+    print("  Full precision (FP16) — 32GB VRAM handles models ≤14B directly")
     print(f"  Loading {config.MODEL_NAME}...")
 
     model = AutoModelForCausalLM.from_pretrained(
         config.MODEL_NAME,
-        quantization_config=quant_config,
         device_map="auto",
         trust_remote_code=True,
         torch_dtype=torch.float16,
     )
 
     print(f"  Model loaded successfully.")
-
-    # Prepare for k-bit training if quantized
-    if config.USE_4BIT_QUANTIZATION:
-        model = prepare_model_for_kbit_training(model)
-        print("  Model prepared for k-bit training.")
 
     # Enable gradient checkpointing
     if config.USE_GRADIENT_CHECKPOINTING:

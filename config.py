@@ -229,15 +229,6 @@ SAVE_STEPS = 100
 # Recommended: True for models > 7B, optional for smaller models
 USE_GRADIENT_CHECKPOINTING = True
 
-# Load model in 4-bit precision to save VRAM
-# Required for 27B+ models on 32GB, optional for smaller models
-# Set to False for ≤14B models (they fit in 32GB at full precision)
-#
-# NOTE: bitsandbytes ROCm on Windows requires the ROCm HIP SDK installed
-# and the DLL present. If you get DLL errors, keep this False and use
-# models ≤14B which fit in 32GB without quantization.
-USE_4BIT_QUANTIZATION = False
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # HUGGING FACE TOKEN — NOT REQUIRED
 # ═══════════════════════════════════════════════════════════════════════════════

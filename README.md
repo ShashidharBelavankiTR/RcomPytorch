@@ -167,31 +167,13 @@ If the env var doesn't take effect:
 2. Restart your PC
 3. Verify: `echo %HSA_OVERRIDE_GFX_VERSION%` should print `12.0.1`
 
-### bitsandbytes Issues on Windows + ROCm
-
-**Symptom:** `bitsandbytes` fails with `libbitsandbytes_rocm72.dll` not found or ROCm GPU architecture detection errors.
-
-**Why:** The `bitsandbytes` pip package does not include the ROCm DLL for Windows. This is a known upstream issue.
-
-**Impact:** 4-bit quantization (`USE_4BIT_QUANTIZATION = True`) won't work without the fix below.
-
-**Workaround (recommended):** Keep `USE_4BIT_QUANTIZATION = False` in `config.py`. With 32GB VRAM on the R9700, models ≤14B fit in full precision — no quantization needed. The framework automatically falls back to full precision if bitsandbytes fails.
-
-**If you need 4-bit for 27B+ models:**
-1. Install AMD ROCm HIP SDK for Windows
-2. Build from source:
-   ```bash
-   pip install bitsandbytes --no-binary bitsandbytes
-   ```
-3. Verify the DLL exists at the path shown in the error message
-
 ### Out of Memory Errors
 
 1. Reduce `BATCH_SIZE` to 1 in `config.py`
 2. Reduce `MAX_SEQ_LENGTH` to 1024
-3. Enable `USE_4BIT_QUANTIZATION = True`
-4. Enable `USE_GRADIENT_CHECKPOINTING = True`
-5. Reduce `LORA_RANK` to 16
+3. Enable `USE_GRADIENT_CHECKPOINTING = True`
+4. Reduce `LORA_RANK` to 16
+5. Use a smaller model (e.g. 7B instead of 14B)
 
 ### Training is Slow
 
