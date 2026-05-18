@@ -156,13 +156,23 @@ def main():
 
     quant_config = None
     if config.USE_4BIT_QUANTIZATION:
-        print("  4-bit quantization: ENABLED (NF4 + double quantization)")
-        quant_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_compute_dtype=torch.float16,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_use_double_quant=True,
-        )
+        try:
+            # Test that bitsandbytes actually works before using it
+            import bitsandbytes as bnb
+            print("  4-bit quantization: ENABLED (NF4 + double quantization)")
+            quant_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_compute_dtype=torch.float16,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_use_double_quant=True,
+            )
+        except (ImportError, RuntimeError, Exception) as e:
+            print(f"  [WARNING] bitsandbytes failed to load: {e}")
+            print(f"  Falling back to full precision (no 4-bit quantization).")
+            print(f"  This is fine for models ≤14B on your 32GB R9700.")
+            print(f"  To fix: install ROCm HIP SDK and rebuild bitsandbytes from source.")
+            print()
+            config.USE_4BIT_QUANTIZATION = False
     else:
         print("  4-bit quantization: DISABLED (full precision)")
 

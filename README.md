@@ -169,15 +169,21 @@ If the env var doesn't take effect:
 
 ### bitsandbytes Issues on Windows + ROCm
 
-**Symptom:** `bitsandbytes` fails to import or throws DLL errors
+**Symptom:** `bitsandbytes` fails with `libbitsandbytes_rocm72.dll` not found or ROCm GPU architecture detection errors.
 
-**Fixes:**
-1. Install the ROCm-compatible version: `pip install bitsandbytes>=0.44.0`
-2. If pre-built wheels aren't available, build from source:
+**Why:** The `bitsandbytes` pip package does not include the ROCm DLL for Windows. This is a known upstream issue.
+
+**Impact:** 4-bit quantization (`USE_4BIT_QUANTIZATION = True`) won't work without the fix below.
+
+**Workaround (recommended):** Keep `USE_4BIT_QUANTIZATION = False` in `config.py`. With 32GB VRAM on the R9700, models ≤14B fit in full precision — no quantization needed. The framework automatically falls back to full precision if bitsandbytes fails.
+
+**If you need 4-bit for 27B+ models:**
+1. Install AMD ROCm HIP SDK for Windows
+2. Build from source:
    ```bash
    pip install bitsandbytes --no-binary bitsandbytes
    ```
-3. If still failing, set `USE_4BIT_QUANTIZATION = False` in `config.py` for models ≤14B (they fit in 32GB at full precision anyway)
+3. Verify the DLL exists at the path shown in the error message
 
 ### Out of Memory Errors
 
