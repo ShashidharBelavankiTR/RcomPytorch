@@ -158,7 +158,7 @@ def main():
         config.MODEL_NAME,
         device_map="auto",
         trust_remote_code=True,
-        torch_dtype=torch.float16,
+        dtype=torch.float16,
     )
 
     print(f"  Model loaded successfully.")
@@ -233,7 +233,7 @@ def main():
         save_total_limit=2,
         fp16=True,
         bf16=False,
-        optim="paged_adamw_8bit",
+        optim="adamw_torch",
         report_to="none",
         gradient_checkpointing=config.USE_GRADIENT_CHECKPOINTING,
         dataloader_pin_memory=False,

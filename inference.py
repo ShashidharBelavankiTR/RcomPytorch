@@ -55,7 +55,7 @@ def main():
         config.MODEL_NAME,
         device_map="auto",
         trust_remote_code=True,
-        torch_dtype=torch.float16,
+        dtype=torch.float16,
     )
 
     # ── Load tokenizer ─────────────────────────────────────────────────────
